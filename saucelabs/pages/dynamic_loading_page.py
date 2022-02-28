@@ -1,6 +1,7 @@
 from selenium.webdriver.common.by import By
 from pages.base_page import BasePage
 
+
 class DynamicLoadingPage(BasePage):
     _start_button = {"by": By.CSS_SELECTOR, "value": "#start button"}
     _finish_text = {"by": By.ID, "value": "finish"}

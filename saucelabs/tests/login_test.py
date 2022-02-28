@@ -1,9 +1,11 @@
 import pytest
 from pages import login_page
 
+
 @pytest.fixture
 def login(driver):
     return login_page.LoginPage(driver)
+
 
 def test_valid_credentials(login):
     login.with_("tomsmith", "SuperSecretPassword!")

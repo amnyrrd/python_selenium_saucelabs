@@ -1,7 +1,10 @@
 import pytest
 import os
+from dotenv import load_dotenv
 from selenium import webdriver
 from . import config
+
+load_dotenv()
 
 
 def pytest_addoption(parser):
@@ -44,6 +47,8 @@ def driver(request):
     config.browser = request.config.getoption("--browser").lower()
     config.browserversion = request.config.getoption("--browserversion").lower()
     config.platform = request.config.getoption("--platform").lower()
+    sauce_username = os.getenv("SAUCE_USERNAME")
+    sauce_access_key = os.getenv("SAUCE_ACCESS_KEY")
 
     if config.host == "saucelabs":
         capabilities = {
@@ -52,9 +57,7 @@ def driver(request):
             "platformName": config.platform,
             "sauce:options": {},
         }
-        _credentials = (
-            os.environ["SAUCE_USERNAME"] + ":" + os.environ["SAUCE_ACCESS_KEY"]
-        )
+        _credentials = sauce_username + ":" + sauce_access_key
         _url = "https://" + _credentials + "@ondemand.saucelabs.com/wd/hub"
         driver_ = webdriver.Remote(_url, capabilities)
 

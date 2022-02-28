@@ -1,8 +1,11 @@
 from unicodedata import name
 import pytest
 import os
+from dotenv import load_dotenv
 from selenium import webdriver
 from . import config
+
+load_dotenv()
 
 
 def pytest_addoption(parser):
@@ -45,10 +48,12 @@ def driver(request):
     config.browser = request.config.getoption("--browser").lower()
     config.browserversion = request.config.getoption("--browserversion").lower()
     config.platform = request.config.getoption("--platform").lower()
+    sauce_username = os.getenv("SAUCE_USERNAME")
+    sauce_access_key = os.getenv("SAUCE_ACCESS_KEY")
+    tunnel_name = os.getenv("SAUCE_TUNNEL")
 
     if config.host == "saucelabs":
         test_name = request.node.name
-        tunnel_name = os.environ["SAUCE_TUNNEL"]
         capabilities = {
             "browserName": config.browser,
             "browserVersion": config.browserversion,
@@ -57,28 +62,25 @@ def driver(request):
                 "name": test_name,
             },
         }
-        _credentials = (
-            os.environ["SAUCE_USERNAME"] + ":" + os.environ["SAUCE_ACCESS_KEY"]
-        )
+        _credentials = sauce_username + ":" + sauce_access_key
         _url = "https://" + _credentials + "@ondemand.saucelabs.com/wd/hub"
         driver_ = webdriver.Remote(_url, capabilities)
 
     elif config.host == "saucelabs-tunnel":
-        test_name = request.node.name 
-        tunnel_name = os.environ["SAUCE_TUNNEL"]
+        test_name = request.node.name
+        # tunnel_name = os.environ["SAUCE_TUNNEL"]
         capabilities = {
-            'browserName': config.browser,
-            'browserVersion': config.browserversion,
-            'platformName': config.platform,
-            'sauce:options': {
-                "name":test_name,
+            "browserName": config.browser,
+            "browserVersion": config.browserversion,
+            "platformName": config.platform,
+            "sauce:options": {
+                "name": test_name,
                 "tunnel-identifier": tunnel_name,
-            }
+            },
         }
-        _credentials = os.environ["SAUCE_USERNAME"] + ":" + os.environ["SAUCE_ACCESS_KEY"]
+        _credentials = sauce_username + ":" + sauce_access_key
         _url = "https://" + _credentials + "@ondemand.saucelabs.com/wd/hub"
         driver_ = webdriver.Remote(_url, capabilities)
-    
 
     else:
         if config.browser == "chrome":
@@ -95,14 +97,15 @@ def driver(request):
                 driver_ = webdriver.Firefox
 
     def quit():
-        sauce_result = "failed" if request.node.rep_call.failed else "passed"  
-        driver_.execute_script("sauce:job-result={}".format(sauce_result))  
+        sauce_result = "failed" if request.node.rep_call.failed else "passed"
+        driver_.execute_script("sauce:job-result={}".format(sauce_result))
         driver_.quit()
 
     request.addfinalizer(quit)
     return driver_
 
-@pytest.hookimpl(hookwrapper=True, tryfirst=True) 
+
+@pytest.hookimpl(hookwrapper=True, tryfirst=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
     rep = outcome.get_result()

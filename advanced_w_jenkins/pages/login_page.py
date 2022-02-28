@@ -1,6 +1,7 @@
 from selenium.webdriver.common.by import By
 from pages.base_page import BasePage
 
+
 class LoginPage(BasePage):
     _username_input = {"by": By.ID, "value": "username"}
     _password_input = {"by": By.ID, "value": "password"}
@@ -24,8 +25,7 @@ class LoginPage(BasePage):
 
     def failure_message_present(self):
         return self._is_displayed(self._failure_message, 1)
-        
+
     def test_invalid_credentials(self, login):
         login.with_("tomsmith", "bad password")
-        assert login.failure_message_present() 
-
+        assert login.failure_message_present()
